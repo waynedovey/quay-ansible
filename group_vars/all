@@ -1,0 +1,90 @@
+QUAY_IMAGE_VERSION: "quay.io/redhat/quay:v3.1.3"
+#QUAY_IMAGE_VERSION: "quay.io/quay/quay:v3.2.0-3"
+
+QUAY_ENDPOINT: quay.ocp4.gsslab.brq.redhat.com
+CLAIR_ENDPOINT: "{{ QUAY_ENDPOINT }}"
+
+MYSQL_CONTAINER_NAME: mysql
+MYSQL_DATABASE: enterpriseregistrydb
+MYSQL_PASSWORD: JzxCTamgFBmHRhcGFtoPHFkrx1BH2vwQ
+MYSQL_USER: quayuser
+MYSQL_ROOT_PASSWORD: L36PrivxRB02bqOB9jtZtWiCcMsApOGn
+QUAY_CONFIG_PASSWORD: my-secret-password
+QUAY_CONFIG_USER: quayconfig
+QUAY_ROOT_DIR: /opt/quay
+QUAY_STORAGE_DIR: "{{ QUAY_ROOT_DIR }}/storage"
+QUAY_CONFIG_PORT: 8443
+QUAY_OBJECT_STORAGE: false
+QUAY_HTTP_PORT: 80
+QUAY_HTTPS_PORT: 443
+QUAY_REDIS_DEPLOY: true
+QUAY_REDIS_CONTAINERIZE: true
+QUAY_DATABASE_CONTAINERIZE: false
+
+# Clair needs additional proxy settings independent of of what is setup in Quay
+#QUAY_CLAIR_HTTP_PROXY: http://proxy.example.com:8080
+#QUAY_CLAIR_HTTPS_PROXY: http://proxy.example.com:8080
+#QUAY_CLAIR_HTTP_NO_PROXY: "{{ QUAY_ENDPOINT }}"
+
+QUAY_MYSQL_DEPLOY: true
+QUAY_POSTGRESQL_DEPLOY: true
+
+SATELLITE_REGISTER: false
+
+# Mysql role
+mysql_root_home: /root
+mysql_root_username: root
+mysql_root_password: "{{ MYSQL_ROOT_PASSWORD }}"
+mysql_enabled_on_startup: true
+mysql_databases:
+  - name: "{{ MYSQL_DATABASE }}"
+mysql_users:
+  - name: "{{ MYSQL_USER }}"
+    host: "%"
+    password: "{{ MYSQL_PASSWORD }}"
+    priv: "{{ MYSQL_DATABASE }}.*:ALL"
+
+# Postgres role
+postgresql_version: postgresql96
+postgresql_user: postgres
+postgresql_group: postgres
+postgresql_quay_user: quay
+postgresql_quay_user_password: my-secret
+postgresql_quay_db: clair
+postgresql_unix_socket_directories:
+  - /var/run/postgresql
+postgresql_service_state: stopped
+postgresql_service_enabled: false
+POSTGRES_PORT_5432_TCP_PORT: 5432
+#POSTGRES_CONNECTION_STRING: "postgresql://{{ postgresql_quay_user }}@{{ QUAY_ENDPOINT }}:{{ POSTGRES_PORT_5432_TCP_PORT }}/{{ postgresql_quay_db }}?sslmode=disable"
+POSTGRES_CONNECTION_STRING: "host={{ QUAY_ENDPOINT }} sslmode=disable dbname={{ postgresql_quay_db }} user={{ postgresql_quay_user }} password={{ postgresql_quay_user_password }} statement_timeout=60000"
+
+
+_mysql_packages:
+  default:
+    - mariadb-server
+    - mariadb-devel
+    - python2-mysql
+  RedHat-7:
+    - rh-mariadb103-scldevel.x86_64
+    - rh-mariadb103-syspaths
+    - MySQL-python
+  CentOS-7:
+    - mariadb-devel
+    - mariadb-server
+    - MySQL-python
+  CentOS:
+    - mysql-devel
+    - mysql-server
+    - python3-PyMySQL
+
+
+_mysql_service:
+  default: mysql
+  Alpine: mariadb
+  Amazon: mariadb
+  Amazon-2018: mysqld
+  Archlinux: mariadb
+  Fedora: mariadb
+  RedHat-7: rh-mariadb103-mariadb
+  RedHat: mysqld
